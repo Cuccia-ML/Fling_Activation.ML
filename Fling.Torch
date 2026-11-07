@@ -1,0 +1,55 @@
+import torch
+import torch.nn as nn
+from scipy.special import lambertw
+
+class Fling_Function(torch.autograd.Function):
+
+  @staticmethod
+  def forward(ctx, x, a, C, t): 
+
+    exp_branch = C * torch.exp(a * x)
+    f_x = torch.max(exp_branch, x)
+
+    mask = (f_x == x)
+    
+    ctx.save_for_backward(mask, f_x)
+    ctx.a = a
+    ctx.C = C
+
+    return f_x
+  
+  @staticmethod
+  def backward(ctx, grad_output):
+
+    B, f_x, = ctx.saved_tensors
+    a = ctx.a
+    C = ctx.C
+
+    derive_linear = 1.0
+    derive_exp = a * f_x
+
+    grad_x = torch.where(B, grad_output, grad_output * derive_exp)
+
+    return grad_x, None, None, None
+
+class Fling(nn.Module):
+    
+    def __init__(self, a=9.84, C=-0.520):
+        super().__init__()
+
+        def get_t(a, C):
+          lam_w = lambertw(-a * C)
+          return -(lam_w / a).real
+
+        self.a = float(a)
+        self.C = float(C)
+
+        t = get_t(a, C)
+        self.t = float(t)
+
+    def forward(self, x):
+        return Fling_Function.apply(x, self.a, self.C, self.t)
+
+    def __repr__(self):
+        return f"Fling(a={self.a}, C={self.C})"
+    
