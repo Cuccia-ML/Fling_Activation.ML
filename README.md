@@ -1,1 +1,1 @@
-Fling is a new custom activation function for deep learning. Read more about it here in the "Just Fling It" Research Paper.
+Fling is a new custom activation function for deep learning. Read more about it here in the "Just Fling It" Research Paper https://zenodo.org/records/24143280.
